@@ -48,6 +48,14 @@ class L1Loss3d(nn.Module):
         lag = target.size(1) - output.size(1)
         return (output - target[:, lag:, :]).abs().mean()
 
+class MSE(nn.Module):
+    def __init__(self):
+        super().__init__()
+
+    def forward(self, output, target):
+        _assert_no_grad(target)
+        lag = target.size(1) - output.size(1)
+        return (output - target).pow(2).mean()
 
 class MSE3D(nn.Module):
     def __init__(self):
