@@ -131,12 +131,10 @@ class ExpPoisson(nn.Module):
         _assert_no_grad(target)
         loss = (output - target * torch.log(output + self.bias))
         exp_loss = loss * torch.exp(self.lam * loss)
-#         import pdb; pdb.set_trace()
         if not self.per_neuron:
             return exp_loss.mean()
         else:
             return exp_loss.view(-1, loss.shape[-1]).mean(dim=0)
-        
         
 class ExpMSE(nn.Module):
     def __init__(self, lam):
@@ -148,6 +146,35 @@ class ExpMSE(nn.Module):
         loss = (output - target).pow(2)
         exp_loss = loss * torch.exp(self.lam * loss)
         return exp_loss.mean()
+    
+        
+class ExponentialMSE(nn.Module):
+    def __init__(self, lam):
+        super().__init__()
+        self.lam = lam
+
+    def forward(self, output, target):
+        _assert_no_grad(target)
+        loss = (output - target).pow(2)
+        exp_loss = loss * torch.exp(self.lam * target)
+        return exp_loss.mean()
+    
+class ExponentialPoisson(nn.Module):
+    def __init__(self, lam, bias=1e-12, per_neuron=False):
+        super().__init__()
+        self.bias = bias
+        self.per_neuron = per_neuron
+        self.lam = lam
+
+    def forward(self, output, target):
+        _assert_no_grad(target)
+        loss = (output - target * torch.log(output + self.bias))
+        exp_loss = loss * torch.exp(self.lam * target)
+        if not self.per_neuron:
+            return exp_loss.mean()
+        else:
+            return exp_loss.view(-1, loss.shape[-1]).mean(dim=0)
+    
 
 class PoissonNL(nn.Module):
     def __init__(self, bias=1e-12, per_neuron=False):
